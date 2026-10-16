@@ -1,0 +1,7 @@
+{
+  "uuid": "splt-pgm@local.community",
+  "name": "splt-pgm · Split Program (experimental)",
+  "description": "Send a text batch to selected windows. Experimental GNOME 50 prototype; sequential focus, not simultaneous keyboard mirroring.",
+  "shell-version": ["50"],
+  "version": 1
+}
