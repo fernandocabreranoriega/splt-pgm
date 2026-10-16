@@ -46,21 +46,21 @@ export default class SpltPgm extends Extension {
 
     _validateTarget(window) {
         if (!this._enabled || !this._windows().includes(window))
-            throw new Error('Una ventana se cerró, se minimizó o salió del espacio activo.');
+            throw new Error('A window was closed, minimized, or moved out of the active workspace.');
     }
 
     _assertReady(window) {
         this._validateTarget(window);
         if (Main.sessionMode.isLocked || Main.overview.visible || Main.modalCount > 0)
-            throw new Error('El escritorio tiene un diálogo, la vista general o está bloqueado.');
+            throw new Error('A Shell dialog or the overview is open, or the session is locked.');
         if (global.display.focus_window !== window)
-            throw new Error('Cambió el foco.');
+            throw new Error('Window focus changed.');
         const modifiers = global.get_pointer()[2];
         const blocked = Clutter.ModifierType.SHIFT_MASK |
             Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.MOD1_MASK |
             Clutter.ModifierType.SUPER_MASK | Clutter.ModifierType.META_MASK;
         if (modifiers & blocked)
-            throw new Error('Suelta las teclas modificadoras antes de enviar.');
+            throw new Error('Release modifier keys before sending.');
     }
 
     _delay(ms) {
@@ -88,7 +88,7 @@ export default class SpltPgm extends Extension {
                 return;
             }
         }
-        throw new Error('No se pudo enfocar una ventana de destino.');
+        throw new Error('Could not focus a target window.');
     }
 
     _tap(keyval) {
@@ -104,15 +104,15 @@ export default class SpltPgm extends Extension {
         const menu = this._button.menu;
         menu.removeAll();
         if (this._engine.running) {
-            menu.addAction('Detener envío', () => this._engine.cancel());
+            menu.addAction('Stop sending', () => this._engine.cancel());
             return;
         }
-        menu.addMenuItem(new PopupMenu.PopupMenuItem('splt-pgm · prototipo por lotes', {reactive: false}));
+        menu.addMenuItem(new PopupMenu.PopupMenuItem('splt-pgm · batch prototype', {reactive: false}));
         const windows = this._windows();
         this._selected = new Set([...this._selected].filter(window => windows.includes(window)));
         for (const window of windows) {
             const item = new PopupMenu.PopupSwitchMenuItem(
-                (window.get_title() || 'Sin título').slice(0, 80), this._selected.has(window));
+                (window.get_title() || 'Untitled').slice(0, 80), this._selected.has(window));
             item.connect('toggled', (_item, state) => {
                 if (state)
                     this._selected.add(window);
@@ -122,11 +122,11 @@ export default class SpltPgm extends Extension {
             menu.addMenuItem(item);
         }
         if (windows.length < 2)
-            menu.addMenuItem(new PopupMenu.PopupMenuItem('Abre dos ventanas en este espacio.', {reactive: false}));
+            menu.addMenuItem(new PopupMenu.PopupMenuItem('Open two windows in this workspace.', {reactive: false}));
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const entryItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         const entry = new St.Entry({
-            hint_text: 'Texto común (una línea, máximo 256)',
+            hint_text: 'Shared text (one line, up to 256 characters)',
             text: this._draft,
             can_focus: true,
             x_expand: true,
@@ -135,7 +135,7 @@ export default class SpltPgm extends Extension {
         entry.clutter_text.connect('text-changed', () => { this._draft = entry.get_text(); });
         entryItem.add_child(entry);
         menu.addMenuItem(entryItem);
-        menu.addAction('Enviar texto a las ventanas seleccionadas', () => {
+        menu.addAction('Send text to selected windows', () => {
             this._button.menu.close();
             void this._send();
         });
@@ -153,10 +153,10 @@ export default class SpltPgm extends Extension {
             await this._delay(200); // Allow popup grab and activating click to end.
             const result = await engine.send(text, targets);
             if (this._enabled && this._engine === engine)
-                Main.notify('splt-pgm', `Secuencia enviada a ${result.completed} ventanas. Comprueba el texto recibido.`);
+                Main.notify('splt-pgm', `Sequence sent to ${result.completed} windows. Check the received text.`);
         } catch (error) {
             if (this._enabled && this._engine === engine)
-                Main.notify('splt-pgm · envío detenido', error.message);
+                Main.notify('splt-pgm · sending stopped', error.message);
         } finally {
             if (this._engine === engine) {
                 this._pending = false;
@@ -171,7 +171,7 @@ export default class SpltPgm extends Extension {
         this._engine?.cancel();
         for (const [id, reject] of this._timers ?? []) {
             GLib.source_remove(id);
-            reject(new Error('Extensión desactivada.'));
+            reject(new Error('Extension disabled.'));
         }
         this._timers?.clear();
         this._button?.destroy();

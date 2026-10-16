@@ -16,7 +16,7 @@ print(destination)
 
 source = root / 'dist' / 'splt-pgm-0.1.0-source.zip'
 with ZipFile(source, 'w', ZIP_DEFLATED) as archive:
-    for name in ('README.md', 'LICENSE', 'package.json', '.gitignore'):
+    for name in ('README.md', 'CONTRIBUTING.md', 'LICENSE', 'package.json', '.gitignore'):
         archive.write(root / name, f'splt-pgm/{name}')
     for directory in ('extension', 'tests', 'tools'):
         for path in sorted((root / directory).rglob('*')):

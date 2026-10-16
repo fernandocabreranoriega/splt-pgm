@@ -23,7 +23,7 @@ function fixture() {
 
 test('delivers the same Unicode sequence to both targets', async () => {
     const {engine, output} = fixture();
-    assert.deepEqual(await engine.send('Hola ñ 😀', ['editor', 'writer']), {completed: 2});
+    assert.deepEqual(await engine.send('Hello ñ 😀', ['editor', 'writer']), {completed: 2});
     assert.deepEqual(output.get('editor'), output.get('writer'));
     assert.equal(toKeyval('ñ'), 0xf1);
     assert.equal(toKeyval('😀'), 0x0101f600);
@@ -40,7 +40,7 @@ test('validates all targets before any typing', async () => {
     await assert.rejects(engine.send('hello', ['editor', 'closed']), /closed/);
     assert.equal(output.get('editor').length, 0);
     for (const targets of [[], ['editor'], ['editor', 'editor']])
-        await assert.rejects(engine.send('hello', targets), /Selecciona/);
+        await assert.rejects(engine.send('hello', targets), /Select/);
 });
 
 test('stops when focus is stolen without typing the remaining characters', async () => {
@@ -55,7 +55,7 @@ test('stops when focus is stolen without typing the remaining characters', async
 test('cancellation preserves partial delivery and does not retry', async () => {
     const {engine, backend, output} = fixture();
     backend.delay = async () => engine.cancel();
-    await assert.rejects(engine.send('abc', ['editor', 'writer']), /detenido/);
+    await assert.rejects(engine.send('abc', ['editor', 'writer']), /Sending stopped/);
     assert.equal(output.get('editor').length, 1);
     assert.equal(output.get('writer').length, 0);
 });
@@ -66,7 +66,7 @@ test('concurrent send cannot reset the active cancellation state', async () => {
     backend.focus = () => new Promise(resolve => { release = resolve; });
     const sending = engine.send('abc', ['editor', 'writer']);
     engine.cancel();
-    await assert.rejects(engine.send('other', ['editor', 'writer']), /curso/);
+    await assert.rejects(engine.send('other', ['editor', 'writer']), /in progress/);
     release();
-    await assert.rejects(sending, /detenido/);
+    await assert.rejects(sending, /Sending stopped/);
 });

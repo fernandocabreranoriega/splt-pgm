@@ -1,92 +1,89 @@
-# splt-pgm (Split Program) · prototipo experimental
+# splt-pgm (Split Program)
 
-Enviar un mismo texto a ventanas de aplicaciones diferentes en **GNOME Shell 50
-sobre Wayland**. Licencia MIT. Proyecto local, todavía no publicado.
+An experimental GNOME Shell 50 extension that sends the same text to windows
+belonging to different applications on Wayland. Licensed under MIT.
 
-## Qué hace esta versión
+## Current behavior
 
-Seleccionas entre dos y cuatro ventanas del espacio de trabajo activo, escribes
-una línea en el menú de splt-pgm y pulsas Enviar. La extensión activa cada
-ventana, comprueba el foco y simula su secuencia de teclas. **El envío es
-secuencial por lotes: todavía no duplica en vivo lo que escribes directamente
-en otra aplicación.** Es una prueba del mecanismo de entrega.
+Select two to four windows in the active workspace, enter one line in the
+splt-pgm menu, and click **Send text to selected windows**. The extension activates
+each destination, checks focus, and simulates its key sequence.
 
-No necesita root, servicios de teclado ni modificar Mutter. No usa el
-portapapeles, red o archivos para guardar el texto. El borrador permanece en
-memoria mientras la extensión está activa. No hay captura global del teclado.
+**Delivery is sequential and batch-based. Live keyboard mirroring while typing
+directly into another application is not implemented yet.**
 
-## Instalar en Arch
+No root access, keyboard service, or Mutter modification is required. The
+extension does not use the clipboard, network, or files to store text. The draft
+stays in memory while enabled. There is no global keyboard capture.
 
-Construye el paquete con Python 3 (sin dependencias adicionales):
+## Installation on Arch Linux
+
+From your checkout, build with Python 3 (no additional Python dependencies):
 
 ```bash
-cd /data/fcn/projects-fer/splt-pgm
+cd splt-pgm
 python3 tools/package.py
 gnome-extensions install dist/splt-pgm@local.community.shell-extension.zip
 ```
 
-Cierra sesión y vuelve a entrar para que GNOME descubra la extensión. Luego:
+Log out and back in so GNOME discovers the extension, then enable it:
 
 ```bash
 gnome-extensions enable splt-pgm@local.community
 ```
 
-Si ya tienes una versión instalada, desactívala, instala con
-`gnome-extensions install --force ...`, cierra sesión y vuelve a entrar antes
-de habilitarla. No hace falta desactivar la validación de versiones.
+For updates, disable the extension, install with
+`gnome-extensions install --force PATH_TO_ZIP`, then log out and back in before
+enabling it. Keep GNOME's extension version validation enabled.
 
-## Primera prueba
+## First manual test
 
-1. Abre dos documentos de prueba, por ejemplo en un editor y LibreOffice Writer,
-   en el mismo espacio de trabajo. Mantén ambas ventanas sin minimizar.
-2. En cada una, haz clic en el campo donde debe aparecer el texto.
-3. Abre **⇉** en la barra superior y marca ambas ventanas.
-4. Escribe `Hola 123` en el cuadro común y pulsa **Enviar texto**.
-5. No escribas ni cambies de ventana durante el envío. Comprueba manualmente el
-   contenido de ambos documentos; la notificación solo confirma la secuencia
-   enviada, no la recepción por la aplicación.
+1. Open two disposable documents, for example in a text editor and LibreOffice
+   Writer, in the same workspace. Keep both windows unminimized.
+2. Click the intended text field in each window to position its caret.
+3. Open **⇉** in the top bar and select both windows.
+4. Enter `Hello 123` and click **Send text to selected windows**.
+5. Avoid typing or switching windows during delivery. Check both documents:
+   the notification confirms the sequence was sent, not received.
 
-Para interrumpir, abre el menú y pulsa **Detener envío**. Un cambio de foco
-detectado, un diálogo de Shell, teclas modificadoras pulsadas, bloqueo de sesión
-o el cierre de una ventana detienen el envío. Puede quedar texto parcial; no se
-reintenta ni deshace automáticamente. Para desactivar:
+To interrupt, open the menu and click **Stop sending**. Detected focus changes,
+Shell dialogs, held modifiers, session locking, or a closed target stop delivery.
+Partial text may remain; there is no automatic retry or undo. To disable:
 
 ```bash
 gnome-extensions disable splt-pgm@local.community
 ```
 
-## Límites conocidos
+## Known limitations
 
-- Solo una línea y hasta 256 caracteres. No se envían Enter ni Tab, tampoco
-  retroceso, atajos, formato, ratón o cambios de selección.
-- No identifica el campo interno de la aplicación. El cursor debe estar colocado
-  antes de enviar. Un cambio de campo dentro de la misma ventana no se detecta.
-- Se activa una ventana después de otra y el foco queda en el último destino.
-- La entrega depende del mapa de teclado, modificadores de bloqueo e IME. Acentos,
-  caracteres fuera del mapa y emoji necesitan pruebas reales; no se garantiza su
-  recepción aunque puedan convertirse a keysyms.
-- Los eventos se procesan de forma asíncrona: comprobar el foco reduce errores,
-  pero no garantiza que un evento ya encolado no se entregue tras otro cambio.
-- La primera prueba debe hacerse con documentos vacíos de prueba y campos de
-  texto ordinarios. No hay detección de contraseñas o del significado de un campo.
-- No hay compatibilidad universal confirmada con LibreOffice, VS Code,
-  navegadores, Electron o aplicaciones XWayland.
-- Declara únicamente GNOME 50. Otras versiones requieren revisión y pruebas.
+- Only one line of up to 256 characters. Enter, Tab, Backspace, shortcuts,
+  formatting, mouse actions, and selection changes are not sent.
+- The internal text field is not identified. Position each caret before sending.
+  Field changes within the same window are not detected.
+- Focus moves sequentially and remains on the last destination.
+- Delivery depends on keyboard maps, lock modifiers, and input methods. Accents,
+  characters outside the map, and emoji need real application tests. Conversion
+  to a keysym does not guarantee reception.
+- Events are asynchronous: a queued event might arrive after focus changes.
+- Start with disposable documents and ordinary fields. Password fields and field
+  semantics are not detected.
+- Universal compatibility with LibreOffice, VS Code, browsers, Electron, or
+  XWayland applications has not been established.
+- Only GNOME 50 is declared as supported. Other versions require review and tests.
 
-## Desarrollo y validación
+## Development and validation
 
 ```bash
-node --test tests/core.test.js
+node tests/core.test.js
 node --check extension/extension.js
 python3 tools/package.py
 ```
 
-Las pruebas unitarias verifican secuencias Unicode, validación previa de destinos,
-cancelación, cambio de foco y exclusión de envíos concurrentes. Usan un backend
-simulado; no prueban recepción en aplicaciones.
+Unit tests cover Unicode sequences, destination validation, cancellation, focus
+changes, and concurrent sends. Their simulated backend does not test reception.
 
-Prueba de integración en una sesión desechable (requiere las herramientas de
-desarrollo de GNOME y un entorno que permita iniciar un compositor):
+Run integration tests in a disposable session with GNOME development tools and
+an environment that permits starting a compositor:
 
 ```bash
 GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session -- \
@@ -97,53 +94,50 @@ GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session -- \
   "$PWD/tests/shell-smoke.js"
 ```
 
-Esto instala la extensión en directorios temporales y crea su propio compositor;
-no habilita la extensión en la sesión habitual. El smoke test comprueba carga,
-menú, activación de destinos, recepción exacta de `Hola 123` en dos procesos
-separados (GTK3 y GTK4) y limpieza. Requiere los bindings de GTK3 y GTK4 para GJS.
-Los fallos del entorno D-Bus o de los clientes de prueba se deben distinguir de
-un fallo de la extensión.
+This installs into temporary directories and creates a separate compositor. It
+does not enable the extension in your regular session. The smoke test checks
+loading, menu construction, target activation, exact reception of `Hello 123` in
+separate GTK3 and GTK4 processes, and cleanup. Both GTK bindings for GJS are
+required. Distinguish D-Bus and client startup failures from extension failures.
 
-Resultado inicial, 16 de octubre de 2026: seis pruebas unitarias aprobadas y
-smoke test aprobado en GNOME Shell/Mutter 50.3. La sesión aislada emitió avisos
-de servicios auxiliares y una aserción de Mutter sobre orden de ventanas, sin
-impedir la recepción exacta del texto ni la salida con código 0. Todavía no hay
-prueba manual en LibreOffice o VS Code, ni prueba de entrada Unicode real.
+Initial validation on October 16, 2026, before the rename and English translation:
+six unit tests and a smoke test passed on GNOME Shell/Mutter 50.3. The original
+smoke test used `Hola 123`. Auxiliary service warnings and a Mutter window stacking
+assertion did not prevent exact reception or exit code 0. Manual LibreOffice,
+VS Code, and real Unicode input tests remain pending.
 
-Para diagnosticar una instalación normal:
+For diagnostics:
 
 ```bash
 gnome-extensions info splt-pgm@local.community
 journalctl --user -b -o cat
 ```
 
-Al reportar un problema incluye versión de GNOME, distribución, aplicación y
-versión, mapa de teclado, pasos y resultado. Reproduce con texto de ejemplo y
-revisa los registros antes de compartirlos.
+Report GNOME and application versions, distribution, keyboard layout, steps, and
+actual results. Use sample text and review logs before sharing them.
 
-## Camino hacia escritura compartida en vivo
+## Roadmap
 
-1. Confirmar entrega exacta entre aplicaciones distintas y mapas de teclado.
-2. Añadir un compositor de texto persistente con entrega de cambios ordenada;
-   estudiar qué ocurre con IME, selecciones y retroceso.
-3. Investigar una integración con Mutter para duplicar entrada sin alternar foco.
-   No hay un backend de duplicación directa implementado en esta versión.
-4. Añadir preferencias, traducciones, pruebas de accesibilidad y empaquetado de
-   distribución tras comprobar los resultados.
+1. Confirm exact delivery across applications and keyboard layouts.
+2. Add a persistent composer with ordered edit delivery; investigate input
+   methods, selections, and Backspace.
+3. Investigate Mutter integration for mirroring without switching focus.
+   No direct mirroring backend is implemented.
+4. Add preferences, translations, accessibility tests, and distribution packaging
+   after validating behavior.
 
-## Compartir y contribuir
+## Contributing and releases
 
-El código y la licencia están listos para alojarse en un repositorio. Antes de
-una publicación, elige una identidad/UUID permanente y registra las pruebas
-reales de compatibilidad. El UUID actual es provisional. El ZIP de `dist/` es
-instalable; no equivale a una aprobación de extensions.gnome.org ni a un paquete
-de los repositorios de Arch.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and English conventions.
+Choose a permanent extension UUID and record compatibility tests before a wider
+release; the current UUID is provisional. The ZIP in `dist/` does not imply
+approval by extensions.gnome.org or inclusion in Arch Linux repositories.
 
-Las contribuciones deberían incluir una reproducción con ventanas de prueba y
-explicar qué sucede con pérdida de foco, cancelación y desactivación. No registrar
-el texto del usuario ni introducir captura global sin diseñar antes su alcance.
+Contributions should include reproduction steps and explain focus loss,
+cancellation, and disable behavior. Do not log user text or introduce global
+keyboard capture without first discussing its scope.
 
-Referencias: [extensiones de GNOME](https://gjs.guide/extensions/),
-[portar a GNOME 50](https://gjs.guide/extensions/upgrading/gnome-shell-50.html),
+References: [GNOME extensions](https://gjs.guide/extensions/),
+[porting to GNOME 50](https://gjs.guide/extensions/upgrading/gnome-shell-50.html),
 [Meta.Window.activate](https://mutter.gnome.org/meta/method.Window.activate.html),
 [Clutter.VirtualInputDevice](https://mutter.gnome.org/clutter/class.VirtualInputDevice.html).
