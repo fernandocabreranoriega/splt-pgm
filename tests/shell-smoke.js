@@ -40,7 +40,7 @@ export async function run() {
         throw new Error(`Expected two test windows, got ${targets.length}`);
     instance._rebuildMenu();
     await Scripting.sleep(200);
-    const text = 'Hola 123';
+    const text = 'Hello 123';
     const result = await instance._engine.send(text, targets);
     if (result.completed !== 2)
         throw new Error('Both sequences must complete');

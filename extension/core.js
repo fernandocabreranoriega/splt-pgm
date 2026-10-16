@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 export function validateText(text) {
     if (typeof text !== 'string' || text.length === 0)
-        throw new Error('Escribe un texto antes de enviar.');
+        throw new Error('Enter some text before sending.');
     if ([...text].length > 256)
-        throw new Error('El límite del prototipo es de 256 caracteres.');
+        throw new Error('The prototype is limited to 256 characters.');
     if (/[\u0000-\u001f\u007f-\u009f]/u.test(text))
-        throw new Error('Este prototipo solo admite texto en una línea, sin tabuladores.');
+        throw new Error('This prototype only accepts a single line without tabs.');
     return [...text];
 }
 
@@ -29,15 +29,15 @@ export class Broadcaster {
 
     check() {
         if (this.cancelled)
-            throw new Error('Envío detenido; puede haber texto parcial.');
+            throw new Error('Sending stopped; some text may have been delivered.');
     }
 
     async send(text, targets) {
         if (this.running)
-            throw new Error('Ya hay un envío en curso.');
+            throw new Error('A send operation is already in progress.');
         const characters = validateText(text);
         if (targets.length < 2 || targets.length > 4 || new Set(targets).size !== targets.length)
-            throw new Error('Selecciona entre dos y cuatro ventanas diferentes.');
+            throw new Error('Select between two and four different windows.');
         this.running = true;
         this.cancelled = false;
         let completed = 0;
@@ -62,7 +62,7 @@ export class Broadcaster {
             }
             return {completed};
         } catch (error) {
-            throw new Error(`${error.message} Ventanas con secuencia enviada completa: ${completed}/${targets.length}. No se verificó el contenido recibido.`, {cause: error});
+            throw new Error(`${error.message} Windows with the full sequence sent: ${completed}/${targets.length}. Received content was not verified.`, {cause: error});
         } finally {
             this.running = false;
         }
