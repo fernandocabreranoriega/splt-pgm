@@ -75,6 +75,7 @@ gnome-extensions disable splt-pgm@local.community
 
 ```bash
 node tests/core.test.js
+node tests/live.test.js
 node --check extension/extension.js
 python3 tools/package.py
 ```
@@ -117,6 +118,10 @@ Report GNOME and application versions, distribution, keyboard layout, steps, and
 actual results. Use sample text and review logs before sharing them.
 
 ## Roadmap
+
+The append-only queue and the capture backend investigation are documented in
+[Live typing investigation](docs/live-typing.md). The queue is not enabled in the
+extension UI; batch delivery remains the available input mode.
 
 1. Confirm exact delivery across applications and keyboard layouts.
 2. Add a persistent composer with ordered edit delivery; investigate input
